@@ -104,12 +104,21 @@ export const withFixture = fixture => async (t, task) => {
 
 				let state = {};
 				let pendingState;
+				let process;
+
+				t.teardown(async () => {
+					if (process?.connected) {
+						process?.send('abort-watcher');
+						await process;
+					}
+				});
 
 				const results = run(args, options);
 				try {
 					let nextResult = results.next();
-					while (true) { // eslint-disable-line no-constant-condition
+					while (!isDone) { // eslint-disable-line no-unmodified-loop-condition
 						const item = await Promise.race([nextResult, idlePromise, donePromise]); // eslint-disable-line no-await-in-loop
+						process ??= item.value?.process;
 
 						if (item.value) {
 							failedIdleAssertion ||= assertingIdle;
@@ -124,8 +133,8 @@ export const withFixture = fixture => async (t, task) => {
 							}
 						}
 
-						if (item.done || isDone) {
-							item.value?.process.send('abort-watcher');
+						if (item.done) {
+							await pendingState; // eslint-disable-line no-await-in-loop
 							break;
 						}
 					}
