@@ -106,8 +106,8 @@ export const withFixture = fixture => async (t, task) => {
 
 				t.teardown(async () => {
 					if (process?.connected) {
-						process?.send('abort-watcher');
-						await process;
+						// In CI, killing the process is the best guarantee that the test file exits on its own.
+						process.kill();
 					}
 				});
 
