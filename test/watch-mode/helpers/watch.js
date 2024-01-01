@@ -110,7 +110,9 @@ export const withFixture = fixture => async (t, task) => {
 						process.kill();
 					}
 
-					await process;
+					try {
+						await process;
+					} catch {}
 				});
 
 				const results = run(args, options);
