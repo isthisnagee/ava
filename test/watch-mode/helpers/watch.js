@@ -80,7 +80,7 @@ export const withFixture = fixture => async (t, task) => {
 				const assertIdle = async next => {
 					assertingIdle = true;
 
-					t.timeout(30_000);
+					t.timeout(10_000);
 
 					const promise = Promise.all([delay(5000, null, {ref: false}), next?.()]).finally(() => {
 						if (idlePromise === promise) {
@@ -106,8 +106,7 @@ export const withFixture = fixture => async (t, task) => {
 
 				t.teardown(async () => {
 					if (process?.connected) {
-						// In CI, killing the process is the best guarantee that the test file exits on its own.
-						process.kill();
+						process.send('abort-watcher');
 					}
 
 					try {
